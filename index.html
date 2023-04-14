@@ -78,7 +78,7 @@
                     let file1 = e.target.files[0];
                     let file2 = e.target.files[1];
                     console.log(file1)
-                    this.diffMessages.push(`비교시작. ${file1.name}, ${file2.name}`);
+                    this.diffMessages.push(`비교시작. file1: ${file1.name}, file2: ${file2.name}`);
                     this.diffMessages.push('첫번째 row를 제외한 sheet1의 text값만 비교힙니다.');
                     
                     await this.loadWorkbook(file1, 'file1')
@@ -104,6 +104,12 @@
                         return value.richText.map(e=>e.text).join('')
                     }
                     return value;
+                },
+                isFormula(object) {
+                    if (object && typeof object === 'object' && object.hasOwnProperty('formula')) {
+                        return true;
+                    }
+                    return false;
                 },
                 async diff() {
                     if (!this.workbook1 || !this.workbook2) {
@@ -141,8 +147,8 @@
                                 if (value1 != value2) {
                                     checkDiff(cell.address, value1, value2);
                                 }
-                            } else if (typeof value1 === 'object' && typeof value2 === 'object') {
-                                if (value1.formula.toUpperCase() !== value2.formula.toUpperCase()) {
+                            } else if (this.isFormula(value1) && this.isFormula(value2)) {
+                                if (value1.formula?.toUpperCase() !== value2.formula?.toUpperCase()) {
                                     checkDiff(cell.address, value1, value2);    
                                 }
                             } else if (value1 !== value2) {
