@@ -27,6 +27,12 @@
             width: 90%;
             height: 90%;
         }
+        pre {
+            margin: 0px;
+        }
+        td, th {
+            border: 1px solid black;
+        }
     </style>
 </head>
 <body>
@@ -48,8 +54,8 @@
                     <th style="width: 40px;">{{diff.address}}</th>
                     <td>
                         <div>
-                            <span style="background-color: lightgray;">{{diff.value1}}</span><br>
-                            <span style="background-color: lightpink;">{{diff.value2}}</span>
+                            <pre style="background-color: lightgray;">{{diff.value1}}</pre>
+                            <pre style="background-color: lightpink;">{{diff.value2}}</pre>
                         </div>
                     </td>
                 </tr>
