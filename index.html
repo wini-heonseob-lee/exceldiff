@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="description" content="두 엑셀파일이 동일한 데이터인지 비교하는 기능을 제공하는 페이지">
+    <meta name="keywords" content="엑셀, 비교, 차이, excel, diff">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Excel Diff</title>
     <style>
@@ -26,7 +30,9 @@
     </style>
 </head>
 <body>
-    
+    <h3>사용법 안내</h3>
+    <p>2개의 엑셀파일(.xlsx)의 내용을 비교합니다. </p>
+    <p>첫번째 시트, 1 row 제외(header), cell의 text를 비교(rich text)도 text로만 비교합니다. </p>
     <div id="diffApp" class="full">
         
         <div class="dropzone">
@@ -37,11 +43,17 @@
         </div>
         <div>
             <div>{{diffStatus}}</div>
-            <ul>
-                <li v-for="diff in invalidDiffList">
-                    <p>{{diff.address}} <span style="background-color: lightgray;">{{diff.value1}}</span> <span style="background-color: lightpink;">{{diff.value2}}</span></p>
-                </li>
-            </ul>
+            <table>
+                <tr v-for="diff in invalidDiffList">
+                    <th style="width: 40px;">{{diff.address}}</th>
+                    <td>
+                        <div>
+                            <span style="background-color: lightgray;">{{diff.value1}}</span><br>
+                            <span style="background-color: lightpink;">{{diff.value2}}</span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
     
     </div>
@@ -153,7 +165,7 @@
                                 if (value1.formula?.toUpperCase() !== value2.formula?.toUpperCase()) {
                                     checkDiff(cell.address, value1, value2);    
                                 }
-                            } else if (value1 !== value2) {
+                            } else if (value1 && value2 && value1.trim() !== value2.trim()) {
                                 checkDiff(cell.address, value1, value2);
                             }
                         });
