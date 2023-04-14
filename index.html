@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Diff</title>
+    <style>
+        .dropzone {
+            background: white;
+            border-radius: 5px;
+            border: 2px dashed rgb(0, 135, 247);
+            /* border-image: none; */
+            /* max-width: 500px; */
+            margin-left: auto;
+            margin-right: auto;
+            padding: 50px;
+            width: 80%;
+            height: 100px;
+            background-color: lightblue;
+        }
+        html, body, .full {
+            width: 90%;
+            height: 90%;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="diffApp" class="full">
+        
+        <div class="dropzone">
+            file: <input type="file" style="width: 100%; height: 100%;" multiple v-on:change="insertFile">
+        </div>
+        <div>
+            <p v-for="msg in diffMessages">{{msg}}</p>
+        </div>
+        <div>
+            <div>{{diffStatus}}</div>
+            <ul>
+                <li v-for="diff in invalidDiffList">
+                    <p>{{diff.address}} <span style="background-color: lightgray;">{{diff.value1}}</span> <span style="background-color: lightpink;">{{diff.value2}}</span></p>
+                </li>
+            </ul>
+        </div>
+    
+    </div>
+
+    <script defer src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
+    <script>
+
+        const diffApp = new Vue({
+            el: '#diffApp',
+            data: () => {
+                return {
+                    diffStatus: '',
+                    diffMessages: [],
+                    workbook1: null,
+                    workbook2: null,
+                    invalidDiffList: []
+                }
+            },
+            created: function () {
+            },
+            methods: {
+                async insertFile(e) {
+                    if (!e.target.files.length === 2) {
+                        alert('한번에 2개씩 입력하세요 ')
+                        return;
+                    }
+
+                    // init
+                    this.diffStatus = '';
+                    this.diffMessages = [];
+                    this.invalidDiffList = [];
+
+                    let file1 = e.target.files[0];
+                    let file2 = e.target.files[1];
+                    console.log(file1)
+                    this.diffMessages.push(`비교시작. ${file1.name}, ${file2.name}`);
+                    this.diffMessages.push('첫번째 row를 제외한 sheet1의 text값만 비교힙니다.');
+                    
+                    await this.loadWorkbook(file1, 'file1')
+                    await this.loadWorkbook(file2, 'file2')
+                },
+                async loadWorkbook(file, targetId) {
+                    const workbook = new ExcelJS.Workbook();
+                    const reader = new FileReader()
+                    reader.readAsArrayBuffer(file);
+                    reader.onload = async () => {
+                        const buffer = reader.result;
+                        console.log('load ', targetId)
+                        if (targetId === 'file1') {
+                            this.workbook1 = await workbook.xlsx.load(buffer);
+                        } else {
+                            this.workbook2 = await workbook.xlsx.load(buffer);
+                        }
+                        await this.diff();
+                    }// end of onload
+                },
+                richToText(value) {
+                    if (value instanceof Object && value.hasOwnProperty('richText')) {
+                        return value.richText.map(e=>e.text).join('')
+                    }
+                    return value;
+                },
+                async diff() {
+                    if (!this.workbook1 || !this.workbook2) {
+                        console.log('missing workbook. ')
+                        return;
+                    }
+
+                    const sheet1 = this.workbook1.worksheets[0];
+                    const sheet2 = this.workbook2.worksheets[0];
+
+                    console.log('diff test')
+
+                    const allRow = sheet1._rows
+                    sheet1.eachRow((row, rowIndex) => {
+                        if (rowIndex === 1) {
+                            console.log('skip header ');
+                            return;
+                        }
+                        // diff
+                        const checkDiff = (address, value1, value2)=>{
+                            console.log(address, value1, value2);
+                            this.invalidDiffList.push({
+                                address: address,
+                                value1, 
+                                value2 
+                            })
+                        }
+                        row.eachCell((cell, cellIndex) => {
+                            let value1 = cell.value;
+                            let value2 = sheet2.getCell(cell.address)?.value;
+                            value1 = this.richToText(value1);
+                            value2 = this.richToText(value2);
+
+                            if (typeof value1 === 'number' || typeof value2 === 'number') {
+                                if (value1 != value2) {
+                                    checkDiff(cell.address, value1, value2);
+                                }
+                            } else if (typeof value1 === 'object' && typeof value2 === 'object') {
+                                if (value1.formula.toUpperCase() !== value2.formula.toUpperCase()) {
+                                    checkDiff(cell.address, value1, value2);    
+                                }
+                            } else if (value1 !== value2) {
+                                checkDiff(cell.address, value1, value2);
+                            }
+                        });
+                    });
+
+                    if (this.invalidDiffList.length === 0) {
+                        this.diffStatus = '비교 종료. 두 엑셀에서 서로 다른 텍스트가 없습니다. '
+                    } else {
+                        this.diffStatus = "비교 종료. 두 엑셀에서 서로 다른 텍스트를 찾았습니다. "
+                    }
+
+                    console.log('finished')
+                }
+            }
+        })
+
+    </script>
+
+</body>
+</html>
