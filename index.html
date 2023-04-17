@@ -163,6 +163,14 @@
                             value1 = this.richToText(value1);
                             value2 = this.richToText(value2);
 
+                            if (!value1) {
+                                value1 = '';
+                            }
+
+                            if (!value2) {
+                                value2 = '';
+                            }
+
                             if (typeof value1 === 'number' || typeof value2 === 'number') {
                                 if (value1 != value2) {
                                     checkDiff(cell.address, value1, value2);
@@ -171,8 +179,15 @@
                                 if (value1.formula?.toUpperCase() !== value2.formula?.toUpperCase()) {
                                     checkDiff(cell.address, value1, value2);    
                                 }
-                            } else if (value1 && value2 && value1.trim() !== value2.trim()) {
-                                checkDiff(cell.address, value1, value2);
+                            } else if (typeof value1 === 'string' && typeof value2 === 'string') {
+                                if (value1.trim() !== value2.trim()) {
+                                    checkDiff(cell.address, value1, value2);
+                                }
+                            } else {
+                                console.log('else diff ', cell.address, value1, value2)
+                                if (value1 != value2) {
+                                    checkDiff(cell.address, value1, value2);
+                                }
                             }
                         });
                     });
