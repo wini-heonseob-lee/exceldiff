@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue Custom Element Example</title>
+</head>
+<body>
+
+<!-- Custom Element를 사용할 요소 추가 -->
+<div>
+    <p>여기는 바깥임. <br> 
+        컴포넌트에 적용된 p 태그의 style이 적용되지 않는다. </p>
+</div>
+
+<!-- Vue 컴포넌트 정의 -->
+<script type="module" src="./my-vue-element.js"></script>
+
+<!-- vue app 내부에서 사용하는 것도 비슷하게 쓸 수 있고
+    props는 내리고, callback으로 값 가져오는건 
+    기존 component 권장사항이랑 같음
+-->
+<div id="app">
+    <p>대충 vue app 내용 표시하려고 만듬. </p>
+    <p>name : {{name}}</p>
+    <p>job : {{job}}</p>
+    <span>root's count: {{count}}</span>
+    <my-vue-element
+        status="첫번째 new Vue 안에서 사용됨. "
+        :count="count"
+        v-on:after="afterxx"></my-vue-element>
+        <!-- @after 를 사용하면 binding은 되는데
+            다음과 같이 오류가 표시된다.
+            Uncaught DOMException: Failed to execute 'setAttribute' on 'Element': 
+            '@after' is not a valid attribute name.
+         -->
+</div>
+
+<!-- vue app 없이 custom element로도 사용 가능하고
+    이때 callback은 addEventListner('custom-event-명', callback) 을
+    사용해야 함
+ -->
+<my-vue-element
+    id="xx"
+    status="두번째 custom element의 tag를 사용해서 만듬"
+    count="1"></my-vue-element>
+
+    <p id="x"></p>
+
+<script type="module">
+
+    import { createApp, ref } from 'https://cdn.jsdelivr.net/npm/vue@3.3.11/dist/vue.esm-browser.js'
+
+    createApp({
+        setup() {
+            const name = ref('hslee')
+            return {
+                name
+            }
+        },
+        data: () => {
+            return {
+                job: 'xxxx',
+                count: 99,
+                status: 'start1',
+            }
+        },
+        methods: {
+            afterxx(v) {
+                console.log('첫번째 after event called. ' + v.detail);
+                this.count = v.detail[0];
+            }
+        }
+        
+    }).mount('#app')
+
+    document.getElementById('xx').addEventListener('after', (v) => {
+        console.log('두번째 after event called. ', v.detail)
+    })
+
+</script>
+
+<script type="module">
+     import {MyVueElement} from './my-vue-element.js'
+
+    // new MyVueElement로 사용도 가능함 
+    // class로 자동으로 만들어주는듯
+    let ele3 = new MyVueElement({
+        status: '세번째 create by new Class()',
+        count: '88'
+    });
+    ele3.addEventListener('after', (v) => {
+        console.log('세번째 after event called. ', v.detail)
+    })
+
+    document.body.appendChild(ele3)
+</script>
+</body>
+</html>
