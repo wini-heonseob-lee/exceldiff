@@ -106,4 +106,23 @@ const PopExam = defineCustomElement({
 
 customElements.define('pop-exam', PopExam)
 
-export {PopExam};
+/**
+ * @typedef {Object} PopExamParams
+ * @property {string} title
+ * @property {Function} getDataCallback
+ * @property {Function} updateDataCallback
+ */
+
+const PopExamFunc = {
+    /**
+     * 
+     * @param {PopExamParams} params 
+     */
+    showModal(params) {
+        let pop = new PopExam(params);
+        // document에 attach 되어야 vue created가 호출됨.
+        document.body.appendChild(pop);
+    }
+}
+
+export {PopExam, PopExamFunc};
