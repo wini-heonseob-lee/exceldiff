@@ -37,11 +37,19 @@ const PopExam = defineCustomElement({
             this.closeDialog();
             return;
         }
+        
+    },
+    async mounted() {
         this.title = 'loading.....';
         console.log('dialog - 초기화 데이터를 불러온다. ', this.data);
         this.data = await this.getDataCallback();
         console.log('dialog - 초기화 데이터 불러옴', this.data);
         this.title = 'props is ' + this.text;
+
+        // 마운트가 되어야 조작할 수 있음
+        let pop = document.querySelector('pop-exam');
+        let dialog = pop.shadowRoot.querySelector('dialog');
+        dialog.showModal();
     },
     methods: {
         // 컴포넌트에서 사용할 버튼 처리
@@ -68,12 +76,12 @@ const PopExam = defineCustomElement({
         },
         // 컴포넌트에서 사용할 close 버튼 처리
         closeDialog() {
-            document.querySelector('pop-exam').remove();                    
+            document.querySelector('pop-exam').remove();
         }
     },
     // vue template이랑 같음
     template: /*html*/`
-        <dialog open>
+        <dialog>
             <button @click="closeDialog">Close</button>
             <h3>status: {{title}}</h3>
             <div>
