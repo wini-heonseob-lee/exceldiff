@@ -16,7 +16,7 @@
 
     
     <script type="module">
-        import {PopExam} from "./sample.js"
+        import {PopExamFunc} from "./sample.js"
 
         // ============ MOCK API ==================
         const updateApi = async (data) => {
@@ -43,9 +43,7 @@
         // ============ button을 통해 element 추가하기 ==================
         document.getElementById('openBtn').addEventListener('click', () => {
             console.log('html - openPopup() ')
-            let pop = new PopExam({text: "title", getDataCallback: getApi, updateDataCallback: updateApi});
-            // document에 attach 되어야 vue created가 호출됨.
-            document.body.appendChild(pop);
+            PopExamFunc.showModal({text: "title", getDataCallback: getApi, updateDataCallback: updateApi});
         })
     </script>
 </body>
